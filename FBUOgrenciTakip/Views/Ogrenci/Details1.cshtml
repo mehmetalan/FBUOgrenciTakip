@@ -1,0 +1,122 @@
+﻿@model int
+
+<div>
+    <h1>
+        Öğrenciler
+    </h1>
+</div>
+<div>
+    <input type="text" id="searchOgrId" value="@Model" />
+    <img id="myimage" src="~/images/loading.gif" style="display:none" width="30" />
+</div>
+<div id="valMessage" class="alert-danger"></div>
+<div class="row">
+    <div class="col-md-4">
+        <div class="row">
+            <div class="col-md-2">Id</div>
+            <div class="col-md-10"><span id="ogrId">0</span></div>
+        </div>
+        <div class="row">
+            <div class="col-md-2">Ad</div>
+            <div class="col-md-10"><span id="ogrName">0</span></div>
+        </div>
+        <div class="row">
+            <div class="col-md-2">Soyad</div>
+            <div class="col-md-10"><span id="ogrSurName">0</span></div>
+        </div>
+        <div class="row">
+            <div class="col-md-2">Telefon</div>
+            <div class="col-md-10"><span id="ogrTel">0</span></div>
+        </div>
+
+    </div>
+</div>
+<div class="col-md-8">
+    <div class="row">
+        <div class="col-md-4"></div>
+        <div class="col-md-4">
+            <input type="text" id="newNote" name="newNote" class="form-control" />
+            <input style="float:right" id="btnSaveNote" type="button" value="Not Kaydet" class="btn btn-primary" />
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <h1>Notlar</h1>
+    </div>
+</div>
+<div id="notListDiv" class="row">
+    
+</div>
+<div>
+</div>
+@section Scripts
+{
+<script>
+    $(document).ready(function () {
+        GetOgrenci(@Model);
+        
+        $('#searchOgrId').change(function () {
+            GetOgrenci($('#searchOgrId').val());
+        })
+    });
+
+        function GetOgrenci(ogrId) {
+            console.log("öğrenci id :" + ogrId + " için çalışıyor");
+            var url = "http://localhost:10428/api/Ogr/" + ogrId
+            $('#notListDiv').html("");
+            $('#myimage').toggle();
+            $('#ogrId').html("");
+            $('#ogrName').html("");
+            $('#ogrSurName').html("");
+            $('#ogrTel').html("");
+            $('#valMessage').html("");
+            $('#newNote').val("");
+            $('#newNote').prop('disabled', true);
+            $('#btnSaveNote').prop('disabled', true);
+
+            $("#searchOgrId").prop('disabled', true); //disable.
+
+            $.get(url, function (data, status) {
+                $('#myimage').toggle();
+                $("#searchOgrId").prop('disabled', false);
+                if (data.success) {
+                    $('#newNote').prop('disabled', false);
+                    $('#btnSaveNote').prop('disabled', false);
+                    $('#ogrId').html(data.id);
+                    $('#ogrName').html(data.ad);
+                    $('#ogrSurName').html(data.soyad);
+                    $('#ogrTel').html(data.tel);
+                    $('#valMessage').html("");
+                    loadNOtList();
+                }
+                else {
+                    $('#valMessage').html(data.errorMessage);
+                    $('#notListDiv').html(data.errorMessage);
+                }
+            });
+    }
+    $(document).ready(function () {
+        $("#btnSaveNote").click(function () {
+            var ogrId = $('#searchOgrId').val();
+            var url = "/Ogrenci/SaveNote?ogrId=" +ogrId+"&text=" + $('#newNote').val();
+            $.get(url, function (data, status) {
+                if (data.success == true) {
+                    loadNOtList();
+                    alert("kayıt gerçekleşti notId=" + data.notId);
+                    $('#newNote').val("");
+                }
+                else {
+                    alert("HAta!" + data.hata);
+                }
+            });
+
+        });
+    });
+
+    function loadNOtList() {
+       var ogrId = $('#searchOgrId').val();
+       $('#notListDiv').load("/Ogrenci/NotListByOgrId?ogrId=" + ogrId);
+    }
+</script>
+}
